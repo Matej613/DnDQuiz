@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D&D Jeopardy — Realms of Knowledge</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0b0e2a;
+  --navy2: #111435;
+  --navy3: #181c42;
+  --blue-mid: #1a2060;
+  --cell-bg: #0e1540;
+  --cell-hover: #1a2272;
+  --gold: #e8c84a;
+  --gold2: #f5d76e;
+  --gold-dim: #9a8030;
+  --gold-glow: 0 0 18px rgba(232,200,74,0.6), 0 0 40px rgba(232,200,74,0.2);
+  --silver: #c8d0e0;
+  --red: #c0392b;
+  --red2: #e74c3c;
+  --green: #1a7a3a;
+  --green2: #27ae60;
+  --white: #f0f4ff;
+  --border: rgba(232,200,74,0.25);
+  --cat-colors: #7b1fa2, #1565c0, #2e7d32, #c62828, #e65100, #00695c;
+  /* Theme-overridable */
+  --theme-accent: #e8c84a;
+  --theme-accent-rgb: 232,200,74;
+  --theme-bg: #0b0e2a;
+  --theme-bg2: #111435;
+  --theme-bg3: #181c42;
+  --theme-header-bg: #1a2060;
+  --theme-cell-bg: #0e1540;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--theme-bg);
+  color: var(--white);
+  font-family: 'Crimson Text', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(ellipse at 30% 0%, rgba(27,32,96,0.8) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 100%, rgba(11,14,42,1) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(var(--theme-accent-rgb),0.02) 60px, rgba(var(--theme-accent-rgb),0.02) 61px),
+    repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(var(--theme-accent-rgb),0.02) 60px, rgba(var(--theme-accent-rgb),0.02) 61px);
+}
+
+/* ═══════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════ */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ═══════════════════════════════════════
+   SETUP SCREEN
+═══════════════════════════════════════ */
+#setup-screen {
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 28px;
+}
+
+.logo-wrap { text-align: center; }
+.logo-dnd { font-size: 64px; filter: drop-shadow(0 0 20px var(--gold)); animation: float 4s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+.game-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(22px, 4vw, 40px);
+  color: var(--gold);
+  text-shadow: var(--gold-glow);
+  line-height: 1.15;
+  text-align: center;
+}
+.game-sub {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  color: var(--silver);
+  letter-spacing: 4px;
+  text-align: center;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.gold-rule { width: 320px; height: 1px; background: linear-gradient(90deg,transparent,var(--gold),transparent); }
+
+.setup-card {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  padding: 28px 32px;
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.setup-card h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.player-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.player-row input[type="text"] {
+  flex: 1;
+  background: var(--navy3);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 10px 14px;
+  font-family: 'Crimson Text', serif;
+  font-size: 17px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.player-row input:focus { border-color: var(--gold); }
+.color-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+.remove-player {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.4);
+  width: 28px; height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  border-radius: 2px;
+}
+.remove-player:hover { border-color: var(--red); color: var(--red); }
+
+.add-player-btn {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--gold-dim);
+  padding: 9px;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  transition: all 0.2s;
+}
+.add-player-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.btn-gold {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 15px 40px;
+  background: linear-gradient(135deg, #8a6a00, var(--gold), #8a6a00);
+  background-size: 200% 100%;
+  border: none;
+  color: var(--navy);
+  cursor: pointer;
+  transition: all 0.3s;
+  clip-path: polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+}
+.btn-gold:hover { background-position: right; box-shadow: var(--gold-glow); transform: translateY(-2px); }
+
+.btn-ghost {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  padding: 10px 24px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--silver);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ═══════════════════════════════════════
+   EDITOR SCREEN
+═══════════════════════════════════════ */
+#editor-screen {
+  padding: 30px 20px;
+  gap: 20px;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.editor-header h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  color: var(--gold);
+  letter-spacing: 2px;
+}
+
+.editor-tabs {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+.editor-tab {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  color: var(--silver);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.editor-tab.active { background: var(--blue-mid); border-color: var(--gold); color: var(--gold); }
+.editor-tab:hover:not(.active) { border-color: rgba(232,200,74,0.5); color: var(--gold2); }
+
+.cat-editor { width: 100%; display: none; flex-direction: column; gap: 12px; }
+.cat-editor.active { display: flex; }
+
+.cat-name-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.cat-name-row input {
+  flex: 1;
+  background: var(--navy3);
+  border: 1px solid var(--border);
+  color: var(--gold2);
+  padding: 10px 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  letter-spacing: 2px;
+  outline: none;
+}
+.cat-name-row input:focus { border-color: var(--gold); }
+
+.q-editor-block {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.q-editor-block .q-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.q-pts-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--gold);
+  background: rgba(232,200,74,0.08);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  letter-spacing: 1px;
+}
+.q-editor-block label {
+  font-size: 12px;
+  color: var(--gold-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'Cinzel', serif;
+}
+.q-editor-block input[type="text"],
+.q-editor-block textarea {
+  background: var(--navy3);
+  border: 1px solid rgba(232,200,74,0.15);
+  color: var(--white);
+  padding: 9px 12px;
+  font-family: 'Crimson Text', serif;
+  font-size: 16px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+.q-editor-block input:focus,
+.q-editor-block textarea:focus { border-color: var(--gold); }
+.q-editor-block textarea { min-height: 60px; }
+
+.answers-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.answer-edit-row { display: flex; gap: 6px; align-items: center; }
+.answer-edit-row .ans-letter {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  color: var(--gold);
+  width: 22px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.answer-edit-row input { flex: 1; }
+.correct-radio {
+  accent-color: var(--gold);
+  width: 16px; height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.correct-label { font-size: 11px; color: var(--green2); font-family: 'Cinzel', serif; letter-spacing: 1px; }
+
+/* ═══════════════════════════════════════
+   BOARD SCREEN
+═══════════════════════════════════════ */
+#board-screen {
+  padding: 16px;
+  gap: 14px;
+  width: 100%;
+}
+
+.board-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1100px;
+  gap: 12px;
+}
+.board-logo {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(14px, 2vw, 22px);
+  color: var(--gold);
+  text-shadow: var(--gold-glow);
+  white-space: nowrap;
+}
+
+.scoreboard {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.score-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--navy2);
+  border: 2px solid transparent;
+  padding: 6px 14px;
+  min-width: 90px;
+  transition: all 0.3s;
+}
+.score-chip.active-player { border-color: var(--gold); box-shadow: var(--gold-glow); }
+.score-name {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.score-val {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 20px;
+  color: var(--gold);
+}
+.score-val.negative { color: var(--red2); }
+
+/* THE BOARD */
+.jeopardy-board {
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  gap: 6px;
+}
+
+.cat-header {
+  background: var(--blue-mid);
+  border: 1px solid var(--border);
+  padding: 12px 8px;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(10px, 1.5vw, 14px);
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  line-height: 1.3;
+}
+
+.board-cell {
+  background: var(--cell-bg);
+  border: 1px solid rgba(232,200,74,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 70px;
+  padding: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.board-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(232,200,74,0.08), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.board-cell:hover:not(.used)::before { opacity: 1; }
+.board-cell:hover:not(.used) { border-color: var(--gold); transform: scale(1.03); z-index: 2; box-shadow: var(--gold-glow); }
+.board-cell.used { background: var(--navy); opacity: 0.2; cursor: default; pointer-events: none; }
+.cell-pts {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(18px, 2.5vw, 32px);
+  color: var(--gold);
+  text-shadow: var(--gold-glow);
+}
+
+/* ═══════════════════════════════════════
+   QUESTION MODAL
+═══════════════════════════════════════ */
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 28, 0.92);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+.modal-bg.open { display: flex; }
+
+.modal-card {
+  background: var(--navy2);
+  border: 2px solid var(--gold);
+  box-shadow: var(--gold-glow), inset 0 0 60px rgba(11,14,42,0.5);
+  padding: 40px 44px;
+  max-width: 680px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: modal-in 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+}
+@keyframes modal-in {
+  from { transform: scale(0.85) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.modal-cat {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+  opacity: 0.7;
+  text-align: center;
+}
+.modal-pts {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 48px;
+  color: var(--gold);
+  text-shadow: var(--gold-glow);
+  text-align: center;
+  line-height: 1;
+}
+.modal-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+.modal-clue {
+  font-size: clamp(20px, 3vw, 28px);
+  color: var(--white);
+  text-align: center;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Player buzzer buttons */
+.buzzer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.buzzer-label {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  text-align: center;
+  text-transform: uppercase;
+}
+.buzzer-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.buzzer-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 12px 20px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 100px;
+  text-align: center;
+  font-weight: 700;
+}
+.buzzer-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+.buzzer-btn.selected-buzzer { transform: scale(1.08); outline: 3px solid white; }
+
+/* Answer reveal */
+.answer-reveal {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+.answer-reveal.open { display: flex; }
+.answer-text {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  color: var(--gold2);
+  text-align: center;
+  padding: 14px 20px;
+  background: rgba(232,200,74,0.06);
+  border: 1px solid var(--border);
+  letter-spacing: 1px;
+}
+.judge-label {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--silver);
+  text-align: center;
+  text-transform: uppercase;
+}
+.judge-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.btn-correct {
+  background: var(--green);
+  border: 2px solid var(--green2);
+  color: white;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  letter-spacing: 2px;
+  padding: 12px 30px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-correct:hover { background: var(--green2); transform: translateY(-1px); }
+.btn-wrong {
+  background: var(--red);
+  border: 2px solid var(--red2);
+  color: white;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  letter-spacing: 2px;
+  padding: 12px 30px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-wrong:hover { background: var(--red2); transform: translateY(-1px); }
+
+.modal-skip {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.35);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 8px 20px;
+  cursor: pointer;
+  align-self: center;
+  transition: all 0.2s;
+}
+.modal-skip:hover { border-color: var(--gold-dim); color: var(--gold-dim); }
+
+/* ═══════════════════════════════════════
+   END SCREEN
+═══════════════════════════════════════ */
+#end-screen {
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 28px;
+  text-align: center;
+}
+.end-trophy { font-size: 80px; animation: float 3s ease-in-out infinite; }
+.end-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(26px, 5vw, 50px);
+  color: var(--gold);
+  text-shadow: var(--gold-glow);
+}
+.end-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+}
+.result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--navy2);
+  border: 1px solid var(--border);
+}
+.result-row.winner { border-color: var(--gold); box-shadow: var(--gold-glow); }
+.result-rank {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 22px;
+  color: var(--gold);
+  width: 36px;
+}
+.result-name {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  flex: 1;
+  text-align: left;
+  margin-left: 12px;
+}
+.result-score {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 22px;
+  color: var(--gold2);
+}
+.result-score.neg { color: var(--red2); }
+
+/* Notification toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--navy2);
+  border: 1px solid var(--gold);
+  padding: 12px 28px;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  z-index: 1000;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.correct-toast { border-color: var(--green2); color: var(--green2); }
+.toast.wrong-toast { border-color: var(--red2); color: var(--red2); }
+
+/* Daily double flash */
+.daily-double-flash {
+  position: fixed;
+  inset: 0;
+  background: var(--navy);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.daily-double-flash.show { display: flex; animation: dd-flash 2s forwards; }
+@keyframes dd-flash {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; }
+}
+.dd-text {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(40px, 8vw, 80px);
+  color: var(--gold);
+  text-shadow: var(--gold-glow);
+  animation: dd-scale 2s forwards;
+}
+@keyframes dd-scale {
+  0% { transform: scale(0.5); opacity: 0; }
+  30% { transform: scale(1.1); opacity: 1; }
+  70% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.05); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════
+   THEME EDITOR
+═══════════════════════════════════════ */
+.theme-editor-panel {
+  width: 100%;
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+}
+.theme-editor-panel.active { display: flex; }
+
+.theme-section {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.theme-section h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.theme-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.theme-row label {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  color: var(--silver);
+  letter-spacing: 1px;
+  min-width: 130px;
+  flex-shrink: 0;
+}
+.theme-row input[type="text"] {
+  flex: 1;
+  min-width: 160px;
+  background: var(--navy3);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 9px 12px;
+  font-family: 'Crimson Text', serif;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.theme-row input[type="text"]:focus { border-color: var(--gold); }
+.theme-row input[type="color"] {
+  width: 48px; height: 36px;
+  border: 1px solid var(--border);
+  background: var(--navy3);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+.preset-btn {
+  padding: 10px 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-align: center;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.preset-btn:hover { transform: translateY(-2px); }
+.preset-btn.selected { border-color: white !important; }
+.preset-swatch {
+  width: 100%;
+  height: 24px;
+  border-radius: 2px;
+}
+
+.theme-preview-box {
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--navy3);
+}
+.preview-title-text {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 18px;
+  text-align: center;
+  transition: all 0.3s;
+}
+.preview-sub-text {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  opacity: 0.6;
+  text-align: center;
+  transition: all 0.3s;
+}
+.preview-board-mini {
+  display: grid;
+  gap: 3px;
+  margin-top: 6px;
+  width: 100%;
+}
+.preview-cell {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 9px;
+  transition: all 0.3s;
+}
+.preview-header-cell {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 600px) {
+  .modal-card { padding: 24px 18px; }
+  .modal-pts { font-size: 36px; }
+  .answers-editor { grid-template-columns: 1fr; }
+  .setup-card { padding: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SETUP SCREEN ═══════════════ -->
+<div id="setup-screen" class="screen active">
+  <div class="logo-wrap">
+    <div class="logo-dnd" id="setup-icon">🐉</div>
+  </div>
+  <div class="game-title" id="setup-title">Realms of Knowledge</div>
+  <div class="game-sub" id="setup-sub">A D&D Jeopardy Adventure</div>
+  <div class="gold-rule"></div>
+
+  <div class="setup-card">
+    <h2>⚔️ Adventuring Party</h2>
+    <div id="player-list"></div>
+    <button class="add-player-btn" onclick="addPlayer()">+ Add Adventurer</button>
+  </div>
+
+  <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+    <button class="btn-gold" onclick="startGame()">⚔️ Begin Quest</button>
+    <button class="btn-ghost" onclick="showEditor()">✏️ Edit Questions</button>
+  </div>
+</div>
+
+<!-- ═══════════════ EDITOR SCREEN ═══════════════ -->
+<div id="editor-screen" class="screen">
+  <div class="editor-header" style="width:100%; max-width:960px;">
+    <h1>✏️ Question Editor</h1>
+    <div style="display:flex; gap:10px;">
+      <button class="btn-ghost" onclick="showSetup()">← Back</button>
+      <button class="btn-gold" onclick="saveAndBack()">💾 Save & Back</button>
+    </div>
+  </div>
+  <div class="editor-tabs" id="editor-tabs" style="max-width:960px;"></div>
+  <div id="theme-editor-panel" class="theme-editor-panel" style="max-width:960px;">
+
+    <div class="theme-section">
+      <h3>🎨 Quick Presets</h3>
+      <div class="preset-grid" id="preset-grid"></div>
+    </div>
+
+    <div class="theme-section">
+      <h3>🏷️ Game Identity</h3>
+      <div class="theme-row">
+        <label>Game Title</label>
+        <input type="text" id="th-title" oninput="themeData.title=this.value; updateThemePreview()" />
+      </div>
+      <div class="theme-row">
+        <label>Subtitle</label>
+        <input type="text" id="th-subtitle" oninput="themeData.subtitle=this.value; updateThemePreview()" />
+      </div>
+      <div class="theme-row">
+        <label>Icon / Emoji</label>
+        <input type="text" id="th-icon" maxlength="4" style="max-width:80px;" oninput="themeData.icon=this.value; updateThemePreview()" />
+      </div>
+      <div class="theme-row">
+        <label>Currency Name</label>
+        <input type="text" id="th-currency" placeholder="e.g. gp, pts, coins" oninput="themeData.currency=this.value" />
+      </div>
+    </div>
+
+    <div class="theme-section">
+      <h3>🖌️ Colours</h3>
+      <div class="theme-row">
+        <label>Accent Colour</label>
+        <input type="color" id="th-accent" oninput="themeData.accent=this.value; applyTheme()" />
+        <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--silver);letter-spacing:1px;">Used for headings, points & borders</span>
+      </div>
+      <div class="theme-row">
+        <label>Background</label>
+        <input type="color" id="th-bg" oninput="themeData.bg=this.value; applyTheme()" />
+      </div>
+      <div class="theme-row">
+        <label>Panel Colour</label>
+        <input type="color" id="th-bg2" oninput="themeData.bg2=this.value; applyTheme()" />
+      </div>
+      <div class="theme-row">
+        <label>Category Header</label>
+        <input type="color" id="th-header" oninput="themeData.header=this.value; applyTheme()" />
+      </div>
+      <div class="theme-row">
+        <label>Board Cell</label>
+        <input type="color" id="th-cell" oninput="themeData.cell=this.value; applyTheme()" />
+      </div>
+    </div>
+
+    <div class="theme-section">
+      <h3>👁️ Live Preview</h3>
+      <div class="theme-preview-box" id="theme-preview-box">
+        <div style="font-size:32px;" id="preview-icon">🐉</div>
+        <div class="preview-title-text" id="preview-title">Realms of Knowledge</div>
+        <div class="preview-sub-text" id="preview-sub">A D&D Jeopardy Adventure</div>
+        <div class="preview-board-mini" id="preview-board" style="grid-template-columns: repeat(3,1fr);">
+          <div class="preview-header-cell" id="ph0">SPELLS</div>
+          <div class="preview-header-cell" id="ph1">MONSTERS</div>
+          <div class="preview-header-cell" id="ph2">LORE</div>
+          <div class="preview-cell" id="pc0">200</div>
+          <div class="preview-cell" id="pc1">200</div>
+          <div class="preview-cell" id="pc2">200</div>
+          <div class="preview-cell" id="pc3">400</div>
+          <div class="preview-cell" id="pc4">400</div>
+          <div class="preview-cell" id="pc5">400</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div id="editor-content" style="width:100%; max-width:960px;"></div>
+</div>
+
+<!-- ═══════════════ BOARD SCREEN ═══════════════ -->
+<div id="board-screen" class="screen">
+  <div class="board-topbar">
+    <div class="board-logo" id="board-logo-text">⚔️ Realms of Knowledge</div>
+    <div class="scoreboard" id="scoreboard"></div>
+    <button class="btn-ghost" style="font-size:11px; padding:8px 14px;" onclick="endGame()">End Game</button>
+  </div>
+  <div class="jeopardy-board" id="jeopardy-board"></div>
+</div>
+
+<!-- ═══════════════ END SCREEN ═══════════════ -->
+<div id="end-screen" class="screen">
+  <div class="end-trophy">🏆</div>
+  <div class="end-title">Quest Complete!</div>
+  <div class="end-results" id="end-results"></div>
+  <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:10px;">
+    <button class="btn-gold" onclick="playAgain()">🎲 Play Again</button>
+    <button class="btn-ghost" onclick="showSetup()">🏠 Main Menu</button>
+  </div>
+</div>
+
+<!-- ═══════════════ QUESTION MODAL ═══════════════ -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal-card">
+    <div class="modal-cat" id="modal-cat"></div>
+    <div class="modal-pts" id="modal-pts"></div>
+    <div class="modal-divider"></div>
+    <div class="modal-clue" id="modal-clue"></div>
+
+    <div class="buzzer-section" id="buzzer-section">
+      <div class="buzzer-label">Who's answering?</div>
+      <div class="buzzer-grid" id="buzzer-grid"></div>
+      <button class="modal-skip" onclick="revealAnswer()">👁 Reveal Answer / Nobody Answers</button>
+    </div>
+
+    <div class="answer-reveal" id="answer-reveal">
+      <div class="modal-divider"></div>
+      <div class="judge-label">The Answer Is:</div>
+      <div class="answer-text" id="answer-text"></div>
+      <div class="judge-label" id="judge-prompt">Was the answer correct?</div>
+      <div class="judge-btns">
+        <button class="btn-correct" onclick="judgeAnswer(true)">✔ Correct</button>
+        <button class="btn-wrong" onclick="judgeAnswer(false)">✘ Wrong</button>
+      </div>
+    </div>
+
+    <button class="modal-skip" id="close-modal-btn" style="display:none;" onclick="closeModal()">Close & Continue</button>
+  </div>
+</div>
+
+<!-- Daily Double Flash -->
+<div class="daily-double-flash" id="dd-flash">
+  <div class="dd-text">✨ DAILY DOUBLE ✨</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════════════════
+
+const PLAYER_COLORS = [
+  '#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#e91e63'
+];
+
+const POINTS = [200, 400, 600, 800, 1000];
+
+let gameData = {
+  categories: [
+    {
+      name: "Races & Classes",
+      questions: [
+        { clue: "This class uses Rage to enter a battle frenzy, gaining resistance to physical damage.", answer: "What is a Barbarian?", dailyDouble: false },
+        { clue: "This race has darkvision, resistance to being charmed, and immunity to magical sleep.", answer: "What are Elves?", dailyDouble: false },
+        { clue: "This half-giant race from the Forgotten Realms gains +2 Strength, +1 Constitution and can grow to Large size.", answer: "What are Goliaths?", dailyDouble: false },
+        { clue: "A Paladin's most iconic spell — a smite that deals radiant damage and may frighten undead or fiends.", answer: "What is Divine Smite?", dailyDouble: false },
+        { clue: "The subclass that allows a Rogue to cast spells, combining stealth with arcane magic.", answer: "What is Arcane Trickster?", dailyDouble: true },
+      ]
+    },
+    {
+      name: "Spells & Magic",
+      questions: [
+        { clue: "This cantrip is a Wizard staple, dealing 1d10 force damage with no saving throw.", answer: "What is Eldritch Blast? (or Magic Missile for 1st level)", dailyDouble: false },
+        { clue: "This 9th-level spell creates a permanent gate to another plane of existence.", answer: "What is Gate?", dailyDouble: false },
+        { clue: "A bard's 1st-level concentration spell that gives a d6 bonus to one creature's rolls.", answer: "What is Bardic Inspiration / Heroism... or Bless?", dailyDouble: false },
+        { clue: "This spell allows you to exchange bodies with another creature you can see within 30 feet.", answer: "What is Magic Jar?", dailyDouble: false },
+        { clue: "The highest level of spell slot available in 5th Edition D&D.", answer: "What is 9th level?", dailyDouble: true },
+      ]
+    },
+    {
+      name: "Monsters & Foes",
+      questions: [
+        { clue: "This undead creature drains life levels with its touch and is immune to non-magical weapons.", answer: "What is a Wight?", dailyDouble: false },
+        { clue: "The Challenge Rating of a standard adult Red Dragon in 5th Edition.", answer: "What is CR 17?", dailyDouble: false },
+        { clue: "This aberration from the Far Realm has a central eye that suppresses magic in a cone.", answer: "What is a Beholder?", dailyDouble: false },
+        { clue: "A fiend that can disguise itself as a beautiful humanoid and drains life force through a kiss.", answer: "What is a Succubus/Incubus?", dailyDouble: true },
+        { clue: "The tarrasque is considered nearly indestructible in part because of this legendary resistance trait — it has how many per day?", answer: "What is 3 (Legendary Resistances per day)?", dailyDouble: false },
+      ]
+    },
+    {
+      name: "Forgotten Realms",
+      questions: [
+        { clue: "The god of death and the dead in the Forgotten Realms, depicted as a skeletal figure.", answer: "Who is Kelemvor?", dailyDouble: false },
+        { clue: "This Underdark city is the heart of drow civilization, ruled by the demon goddess Lolth.", answer: "What is Menzoberranzan?", dailyDouble: false },
+        { clue: "The famous ranger of Icewind Dale known as 'The Drizzt Do'Urden', he wields two scimitars named for what?", answer: "What are Twinkle and Icingdeath (or Vidrinath)?", dailyDouble: false },
+        { clue: "This ancient organization of wizards, known as 'The Brotherhood of the Arcane', serves as mercenary mages across Faerûn.", answer: "What is the Red Wizards of Thay?", dailyDouble: true },
+        { clue: "The floating city of the Netherese that crashed and destroyed an entire nation.", answer: "What is Ioulaum's City / Netheril (or Karsus's Folly)?", dailyDouble: false },
+      ]
+    },
+    {
+      name: "Rules & Rolls",
+      questions: [
+        { clue: "The condition that causes a creature to fall prone and have disadvantage on attack rolls.", answer: "What is Restrained? (or Prone)", dailyDouble: false },
+        { clue: "This mechanic allows a player to reroll any dice once per short rest, introduced in 5e for the Lucky feat.", answer: "What is the Lucky feat?", dailyDouble: false },
+        { clue: "The action used to drink a potion without taking your full action.", answer: "What is a Bonus Action?", dailyDouble: false },
+        { clue: "A character must make this saving throw when concentrating on a spell after taking damage — the DC is this number or half the damage taken, whichever is higher.", answer: "What is DC 10 (Constitution saving throw)?", dailyDouble: false },
+        { clue: "The number of hit dice a level 5 fighter has.", answer: "What is 5d10?", dailyDouble: true },
+      ]
+    },
+    {
+      name: "Lore & Artifacts",
+      questions: [
+        { clue: "This artifact, a deck of magical cards, can instantly grant or destroy wishes — and drive adventurers mad.", answer: "What is the Deck of Many Things?", dailyDouble: false },
+        { clue: "The cosmic entity of madness who created the Elder Elemental Eye as a deceptive disguise.", answer: "Who is Tharizdun?", dailyDouble: false },
+        { clue: "This plane of existence is where most humanoids go after death, a misty realm of the recently departed.", answer: "What is the Shadowfell / Hades?", dailyDouble: false },
+        { clue: "The name of the demonic weapon Demogorgon, Prince of Demons, is said to carry.", answer: "What is the Wand of Orcus / his twin tentacle heads (or Scepter of Demogorgon)?", dailyDouble: true },
+        { clue: "The legendary sword that was broken and reforged for the ranger Aragorn... wait, wrong lore. THIS D&D sword is a Holy Avenger, and it deals extra radiant damage to undead when wielded by THIS class.", answer: "What is a Paladin?", dailyDouble: false },
+      ]
+    }
+  ]
+};
+
+let players = [];
+let activePlayerIdx = 0;
+let currentCell = null; // { catIdx, qIdx }
+let buzzedPlayerIdx = null;
+let usedCells = new Set();
+
+// ════════════════════════════════════════════════════════
+//  THEME DATA & PRESETS
+// ════════════════════════════════════════════════════════
+
+let themeData = {
+  title: 'Realms of Knowledge',
+  subtitle: 'A D&D Jeopardy Adventure',
+  icon: '🐉',
+  currency: 'gp',
+  accent: '#e8c84a',
+  bg: '#0b0e2a',
+  bg2: '#111435',
+  bg3: '#181c42',
+  header: '#1a2060',
+  cell: '#0e1540',
+};
+
+const THEME_PRESETS = [
+  {
+    name: 'D&D Classic',
+    emoji: '🐉',
+    accent: '#e8c84a', bg: '#0b0e2a', bg2: '#111435', bg3: '#181c42', header: '#1a2060', cell: '#0e1540',
+    title: 'Realms of Knowledge', subtitle: 'A D&D Jeopardy Adventure', icon: '🐉', currency: 'gp',
+  },
+  {
+    name: 'Shadowfell',
+    emoji: '💀',
+    accent: '#a78bfa', bg: '#0d0014', bg2: '#1a0028', bg3: '#220035', header: '#2d0050', cell: '#160020',
+    title: 'Shadows of Knowledge', subtitle: 'A Dark Realm Quiz', icon: '💀', currency: 'souls',
+  },
+  {
+    name: 'Dragon Fire',
+    emoji: '🔥',
+    accent: '#ff6b35', bg: '#1a0800', bg2: '#2a0e00', bg3: '#361200', header: '#4a1800', cell: '#200900',
+    title: 'Trial by Fire', subtitle: 'A Dragon\'s Challenge', icon: '🔥', currency: 'scales',
+  },
+  {
+    name: 'Arcane',
+    emoji: '🔮',
+    accent: '#60efff', bg: '#010d1a', bg2: '#021525', bg3: '#031d30', header: '#042a45', cell: '#010f1e',
+    title: 'Arcane Secrets', subtitle: 'Spells & Sorcery Quiz', icon: '🔮', currency: 'mana',
+  },
+  {
+    name: 'Forest Realm',
+    emoji: '🌿',
+    accent: '#6bcb77', bg: '#050f05', bg2: '#0a1a0a', bg3: '#0e220e', header: '#143314', cell: '#080f08',
+    title: 'Verdant Trials', subtitle: 'A Druid\'s Challenge', icon: '🌿', currency: 'leaves',
+  },
+  {
+    name: 'Pirate Seas',
+    emoji: '⚓',
+    accent: '#ffd166', bg: '#0a0d1a', bg2: '#0f1428', bg3: '#141a32', header: '#1a2347', cell: '#0c1020',
+    title: 'Seas of Fortune', subtitle: 'A Pirate\'s Quiz', icon: '⚓', currency: 'doubloons',
+  },
+  {
+    name: 'Underdark',
+    emoji: '🍄',
+    accent: '#c084fc', bg: '#080010', bg2: '#100018', bg3: '#180022', header: '#200030', cell: '#0c0014',
+    title: 'Underdark Trials', subtitle: 'Drow & Depths', icon: '🍄', currency: 'gems',
+  },
+  {
+    name: 'Celestial',
+    emoji: '⭐',
+    accent: '#fde68a', bg: '#04071a', bg2: '#080d28', bg3: '#0c1232', header: '#101945', cell: '#060a1e',
+    title: 'Celestial Knowledge', subtitle: 'Stars & Divinity', icon: '⭐', currency: 'stardust',
+  },
+];
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+function applyTheme() {
+  const root = document.documentElement;
+  root.style.setProperty('--theme-accent', themeData.accent);
+  root.style.setProperty('--theme-accent-rgb', hexToRgb(themeData.accent));
+  root.style.setProperty('--theme-bg', themeData.bg);
+  root.style.setProperty('--theme-bg2', themeData.bg2);
+  root.style.setProperty('--theme-bg3', themeData.bg3);
+  root.style.setProperty('--theme-header-bg', themeData.header);
+  root.style.setProperty('--theme-cell-bg', themeData.cell);
+  // Also update the gold vars so everything follows accent
+  root.style.setProperty('--gold', themeData.accent);
+  root.style.setProperty('--gold2', themeData.accent);
+  root.style.setProperty('--gold-dim', themeData.accent + '99');
+  root.style.setProperty('--gold-glow', `0 0 18px rgba(${hexToRgb(themeData.accent)},0.6), 0 0 40px rgba(${hexToRgb(themeData.accent)},0.2)`);
+  root.style.setProperty('--border', `rgba(${hexToRgb(themeData.accent)},0.25)`);
+  root.style.setProperty('--navy', themeData.bg);
+  root.style.setProperty('--navy2', themeData.bg2);
+  root.style.setProperty('--navy3', themeData.bg3);
+  root.style.setProperty('--blue-mid', themeData.header);
+  root.style.setProperty('--cell-bg', themeData.cell);
+  updateThemePreview();
+  // Update setup screen
+  const setupIcon = document.getElementById('setup-icon');
+  if (setupIcon) setupIcon.textContent = themeData.icon;
+  const setupTitle = document.getElementById('setup-title');
+  if (setupTitle) setupTitle.textContent = themeData.title;
+  const setupSub = document.getElementById('setup-sub');
+  if (setupSub) setupSub.textContent = themeData.subtitle;
+  // Update board logo if on board screen
+  const logo = document.getElementById('board-logo-text');
+  if (logo) logo.textContent = `${themeData.icon} ${themeData.title}`;
+}
+
+function updateThemePreview() {
+  const accent = themeData.accent;
+  const bg = themeData.bg;
+  const header = themeData.header;
+  const cell = themeData.cell;
+  const accentRgb = hexToRgb(accent);
+
+  const box = document.getElementById('theme-preview-box');
+  if (box) box.style.background = bg;
+
+  const icon = document.getElementById('preview-icon');
+  if (icon) icon.textContent = themeData.icon;
+
+  const title = document.getElementById('preview-title');
+  if (title) { title.textContent = themeData.title; title.style.color = accent; title.style.textShadow = `0 0 15px rgba(${accentRgb},0.6)`; }
+
+  const sub = document.getElementById('preview-sub');
+  if (sub) { sub.textContent = themeData.subtitle; }
+
+  ['ph0','ph1','ph2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.background = header; el.style.color = '#fff'; el.style.borderBottom = `1px solid rgba(${accentRgb},0.3)`; }
+  });
+  ['pc0','pc1','pc2','pc3','pc4','pc5'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.background = cell; el.style.color = accent; el.style.border = `1px solid rgba(${accentRgb},0.2)`; }
+  });
+}
+
+function syncThemeInputs() {
+  document.getElementById('th-title').value = themeData.title;
+  document.getElementById('th-subtitle').value = themeData.subtitle;
+  document.getElementById('th-icon').value = themeData.icon;
+  document.getElementById('th-currency').value = themeData.currency;
+  document.getElementById('th-accent').value = themeData.accent;
+  document.getElementById('th-bg').value = themeData.bg;
+  document.getElementById('th-bg2').value = themeData.bg2;
+  document.getElementById('th-header').value = themeData.header;
+  document.getElementById('th-cell').value = themeData.cell;
+}
+
+function renderPresets() {
+  const grid = document.getElementById('preset-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  THEME_PRESETS.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn';
+    btn.id = `preset-btn-${i}`;
+    btn.style.background = p.bg;
+    btn.style.borderColor = p.accent + '55';
+    btn.style.color = p.accent;
+    btn.innerHTML = `
+      <div class="preset-swatch" style="background: linear-gradient(135deg, ${p.header} 0%, ${p.cell} 50%, ${p.bg} 100%); border: 1px solid ${p.accent}44;"></div>
+      <span>${p.emoji} ${p.name}</span>
+    `;
+    btn.onclick = () => applyPreset(i);
+    grid.appendChild(btn);
+  });
+}
+
+function applyPreset(i) {
+  const p = THEME_PRESETS[i];
+  themeData = { ...p };
+  syncThemeInputs();
+  applyTheme();
+  // highlight selected
+  document.querySelectorAll('.preset-btn').forEach((b,idx) => b.classList.toggle('selected', idx===i));
+  showToast(`Theme: ${p.name}!`);
+}
+
+// ════════════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ════════════════════════════════════════════════════════
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showSetup() { showScreen('setup-screen'); renderPlayerList(); }
+function showEditor() { renderEditor(); showScreen('editor-screen'); }
+function saveAndBack() { applyTheme(); showSetup(); showToast('Saved!'); }
+
+// ════════════════════════════════════════════════════════
+//  PLAYERS
+// ════════════════════════════════════════════════════════
+
+function initDefaultPlayers() {
+  players = [
+    { name: 'Player 1', color: PLAYER_COLORS[0], score: 0 },
+    { name: 'Player 2', color: PLAYER_COLORS[1], score: 0 },
+  ];
+}
+
+function renderPlayerList() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  players.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <div class="color-dot" style="background:${p.color}"></div>
+      <input type="text" value="${p.name}" placeholder="Adventurer name" oninput="players[${i}].name=this.value" />
+      <button class="remove-player" onclick="removePlayer(${i})" title="Remove">✕</button>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function addPlayer() {
+  if (players.length >= 8) { showToast('Max 8 adventurers!'); return; }
+  players.push({ name: `Player ${players.length + 1}`, color: PLAYER_COLORS[players.length % PLAYER_COLORS.length], score: 0 });
+  renderPlayerList();
+}
+
+function removePlayer(i) {
+  if (players.length <= 1) { showToast('Need at least 1 adventurer!'); return; }
+  players.splice(i, 1);
+  renderPlayerList();
+}
+
+// ════════════════════════════════════════════════════════
+//  EDITOR
+// ════════════════════════════════════════════════════════
+
+function renderEditor() {
+  const tabs = document.getElementById('editor-tabs');
+  const content = document.getElementById('editor-content');
+  const themePanel = document.getElementById('theme-editor-panel');
+  tabs.innerHTML = '';
+  content.innerHTML = '';
+
+  // ── THEME TAB ──
+  const themeTab = document.createElement('button');
+  themeTab.className = 'editor-tab active';
+  themeTab.id = 'tab-theme';
+  themeTab.textContent = '🎨 Theme';
+  themeTab.onclick = () => switchEditorTab('theme');
+  tabs.appendChild(themeTab);
+
+  // ── CATEGORY TABS ──
+  gameData.categories.forEach((cat, ci) => {
+    const tab = document.createElement('button');
+    tab.className = 'editor-tab';
+    tab.id = `tab-cat-${ci}`;
+    tab.textContent = cat.name || `Category ${ci+1}`;
+    tab.onclick = () => switchEditorTab(ci);
+    tabs.appendChild(tab);
+
+    const panel = document.createElement('div');
+    panel.className = 'cat-editor';
+    panel.id = `cat-editor-${ci}`;
+
+    let html = `
+      <div class="cat-name-row">
+        <input type="text" value="${cat.name}" placeholder="Category Name"
+          oninput="gameData.categories[${ci}].name=this.value; document.getElementById('tab-cat-${ci}').textContent=this.value||'Category ${ci+1}'" />
+      </div>
+    `;
+
+    cat.questions.forEach((q, qi) => {
+      const pts = POINTS[qi];
+      html += `
+        <div class="q-editor-block">
+          <div class="q-header">
+            <span class="q-pts-badge">${pts} pts</span>
+            <label style="display:flex;align-items:center;gap:6px; cursor:pointer;">
+              <input type="checkbox" ${q.dailyDouble ? 'checked' : ''} onchange="gameData.categories[${ci}].questions[${qi}].dailyDouble=this.checked" style="accent-color:var(--gold);width:16px;height:16px;" />
+              <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--gold);letter-spacing:1px;">DAILY DOUBLE</span>
+            </label>
+          </div>
+          <label>Clue (what the host reads)</label>
+          <textarea oninput="gameData.categories[${ci}].questions[${qi}].clue=this.value">${q.clue}</textarea>
+          <label>Answer (the correct response)</label>
+          <input type="text" value="${q.answer}" oninput="gameData.categories[${ci}].questions[${qi}].answer=this.value" placeholder='e.g. "What is a Beholder?"' />
+        </div>
+      `;
+    });
+
+    panel.innerHTML = html;
+    content.appendChild(panel);
+  });
+
+  // Show theme panel by default
+  themePanel.classList.add('active');
+  content.style.display = 'none';
+
+  // Sync theme inputs & render presets
+  syncThemeInputs();
+  renderPresets();
+  updateThemePreview();
+}
+
+function switchEditorTab(which) {
+  const themePanel = document.getElementById('theme-editor-panel');
+  const content = document.getElementById('editor-content');
+
+  document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+
+  if (which === 'theme') {
+    document.getElementById('tab-theme').classList.add('active');
+    themePanel.classList.add('active');
+    content.style.display = 'none';
+  } else {
+    document.getElementById(`tab-cat-${which}`).classList.add('active');
+    themePanel.classList.remove('active');
+    content.style.display = 'block';
+    document.querySelectorAll('.cat-editor').forEach(e => e.classList.remove('active'));
+    document.getElementById(`cat-editor-${which}`).classList.add('active');
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  GAME START
+// ════════════════════════════════════════════════════════
+
+function startGame() {
+  if (players.length === 0) { showToast('Add at least one player!'); return; }
+  // Reset scores
+  players.forEach(p => p.score = 0);
+  usedCells = new Set();
+  activePlayerIdx = 0;
+
+  applyTheme();
+  const logo = document.getElementById('board-logo-text');
+  if (logo) logo.textContent = `${themeData.icon} ${themeData.title}`;
+
+  buildBoard();
+  renderScoreboard();
+  showScreen('board-screen');
+}
+
+function buildBoard() {
+  const board = document.getElementById('jeopardy-board');
+  const numCats = gameData.categories.length;
+  board.style.gridTemplateColumns = `repeat(${numCats}, 1fr)`;
+
+  board.innerHTML = '';
+
+  // Headers
+  gameData.categories.forEach((cat, ci) => {
+    const hdr = document.createElement('div');
+    hdr.className = 'cat-header';
+    hdr.style.borderTopColor = PLAYER_COLORS[ci % PLAYER_COLORS.length];
+    hdr.style.borderTopWidth = '3px';
+    hdr.style.borderTopStyle = 'solid';
+    hdr.textContent = cat.name.toUpperCase();
+    board.appendChild(hdr);
+  });
+
+  // Cells
+  POINTS.forEach((pts, qi) => {
+    gameData.categories.forEach((cat, ci) => {
+      const cell = document.createElement('div');
+      const key = `${ci}-${qi}`;
+      cell.className = 'board-cell' + (usedCells.has(key) ? ' used' : '');
+      cell.id = `cell-${ci}-${qi}`;
+      cell.innerHTML = `<span class="cell-pts">${pts}</span>`;
+      cell.onclick = () => openQuestion(ci, qi);
+      board.appendChild(cell);
+    });
+  });
+}
+
+function renderScoreboard() {
+  const sb = document.getElementById('scoreboard');
+  sb.innerHTML = '';
+  players.forEach((p, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'score-chip' + (i === activePlayerIdx ? ' active-player' : '');
+    chip.id = `score-chip-${i}`;
+    chip.innerHTML = `
+      <div class="score-name" style="color:${p.color}">${p.name}</div>
+      <div class="score-val ${p.score < 0 ? 'negative' : ''}" id="score-val-${i}">${p.score.toLocaleString()}</div>
+    `;
+    sb.appendChild(chip);
+  });
+}
+
+function updateScoreboard() {
+  players.forEach((p, i) => {
+    const chip = document.getElementById(`score-chip-${i}`);
+    if (chip) chip.className = 'score-chip' + (i === activePlayerIdx ? ' active-player' : '');
+    const val = document.getElementById(`score-val-${i}`);
+    if (val) {
+      val.textContent = p.score.toLocaleString();
+      val.className = 'score-val' + (p.score < 0 ? ' negative' : '');
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  QUESTION FLOW
+// ════════════════════════════════════════════════════════
+
+function openQuestion(ci, qi) {
+  const key = `${ci}-${qi}`;
+  if (usedCells.has(key)) return;
+
+  currentCell = { ci, qi };
+  buzzedPlayerIdx = null;
+
+  const cat = gameData.categories[ci];
+  const q = cat.questions[qi];
+  const pts = POINTS[qi];
+
+  // Daily double?
+  if (q.dailyDouble) {
+    const flash = document.getElementById('dd-flash');
+    flash.classList.add('show');
+    setTimeout(() => {
+      flash.classList.remove('show');
+      openModal(cat, q, pts);
+    }, 2000);
+  } else {
+    openModal(cat, q, pts);
+  }
+}
+
+function openModal(cat, q, pts) {
+  document.getElementById('modal-cat').textContent = cat.name.toUpperCase();
+  document.getElementById('modal-pts').textContent = pts;
+  document.getElementById('modal-clue').textContent = q.clue;
+  document.getElementById('answer-text').textContent = q.answer;
+
+  document.getElementById('answer-reveal').classList.remove('open');
+  document.getElementById('close-modal-btn').style.display = 'none';
+  document.getElementById('buzzer-section').style.display = 'flex';
+
+  // Build buzzer buttons
+  const grid = document.getElementById('buzzer-grid');
+  grid.innerHTML = '';
+  players.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'buzzer-btn';
+    btn.style.background = p.color + '22';
+    btn.style.borderColor = p.color;
+    btn.style.color = p.color;
+    btn.textContent = p.name;
+    btn.id = `buzz-${i}`;
+    btn.onclick = () => selectBuzzer(i);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function selectBuzzer(i) {
+  buzzedPlayerIdx = i;
+  document.querySelectorAll('.buzzer-btn').forEach((b, idx) => {
+    b.classList.toggle('selected-buzzer', idx === i);
+  });
+  revealAnswer();
+}
+
+function revealAnswer() {
+  document.getElementById('buzzer-section').style.display = 'none';
+  const rev = document.getElementById('answer-reveal');
+  rev.classList.add('open');
+
+  if (buzzedPlayerIdx === null) {
+    document.getElementById('judge-prompt').textContent = 'Nobody answered — mark used:';
+    document.querySelector('.btn-correct').textContent = '✔ Skip (no points)';
+    document.querySelector('.btn-wrong').style.display = 'none';
+  } else {
+    const p = players[buzzedPlayerIdx];
+    document.getElementById('judge-prompt').textContent = `${p.name} answered — correct?`;
+    document.querySelector('.btn-correct').textContent = '✔ Correct!';
+    document.querySelector('.btn-wrong').style.display = '';
+    document.querySelector('.btn-wrong').textContent = '✘ Wrong!';
+  }
+}
+
+function judgeAnswer(isCorrect) {
+  const { ci, qi } = currentCell;
+  const pts = POINTS[qi];
+
+  if (buzzedPlayerIdx !== null) {
+    if (isCorrect) {
+      players[buzzedPlayerIdx].score += pts;
+      activePlayerIdx = buzzedPlayerIdx;
+      showToast(`+${pts} for ${players[buzzedPlayerIdx].name}!`, 'correct-toast');
+    } else {
+      players[buzzedPlayerIdx].score -= pts;
+      showToast(`-${pts} for ${players[buzzedPlayerIdx].name}`, 'wrong-toast');
+    }
+    updateScoreboard();
+  }
+
+  markUsed(ci, qi);
+  closeModal();
+
+  if (checkAllUsed()) setTimeout(endGame, 500);
+}
+
+function markUsed(ci, qi) {
+  const key = `${ci}-${qi}`;
+  usedCells.add(key);
+  const cell = document.getElementById(`cell-${ci}-${qi}`);
+  if (cell) cell.classList.add('used');
+}
+
+function checkAllUsed() {
+  const total = gameData.categories.length * POINTS.length;
+  return usedCells.size >= total;
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+  document.querySelector('.btn-wrong').style.display = '';
+}
+
+// ════════════════════════════════════════════════════════
+//  END GAME
+// ════════════════════════════════════════════════════════
+
+function endGame() {
+  const sorted = [...players].sort((a, b) => b.score - a.score);
+  const res = document.getElementById('end-results');
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣'];
+  res.innerHTML = '';
+  sorted.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'result-row' + (i === 0 ? ' winner' : '');
+    row.innerHTML = `
+      <div class="result-rank">${medals[i]}</div>
+      <div class="result-name" style="color:${p.color}">${p.name}</div>
+      <div class="result-score ${p.score < 0 ? 'neg' : ''}">${p.score.toLocaleString()} ${themeData.currency}</div>
+    `;
+    res.appendChild(row);
+  });
+  showScreen('end-screen');
+}
+
+function playAgain() {
+  players.forEach(p => p.score = 0);
+  usedCells = new Set();
+  activePlayerIdx = 0;
+  buildBoard();
+  renderScoreboard();
+  showScreen('board-screen');
+}
+
+// ════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════
+
+let toastTimer;
+function showToast(msg, cls='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + cls + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+
+initDefaultPlayers();
+renderPlayerList();
+applyTheme();
+</script>
+</body>
+</html>
