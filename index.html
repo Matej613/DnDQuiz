@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D&D Jeopardy — Realms of Knowledge</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #e8c84a; --gold2: #f5d76e; --gold-dim: #9a8030;
+  --gold-glow: 0 0 18px rgba(232,200,74,0.6), 0 0 40px rgba(232,200,74,0.2);
+  --silver: #c8d0e0; --red: #c0392b; --red2: #e74c3c;
+  --green: #1a7a3a; --green2: #27ae60; --white: #f0f4ff;
+  --border: rgba(232,200,74,0.25);
+  --bg:#0b0e2a; --bg2:#111435; --bg3:#181c42; --hdr:#1a2060; --cel:#0e1540;
+  --acc:#e8c84a; --acc-rgb:232,200,74;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--white);font-family:'Crimson Text',serif;min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(ellipse at 30% 0%,rgba(27,32,96,.7) 0%,transparent 60%),radial-gradient(ellipse at 70% 100%,rgba(5,7,20,1) 0%,transparent 60%);}
+
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+
+/* ── SETUP ── */
+#setup-screen{justify-content:center;padding:40px 20px;gap:24px;}
+.logo-dnd{font-size:64px;text-align:center;filter:drop-shadow(0 0 20px var(--acc));animation:float 4s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.game-title{font-family:'Cinzel Decorative',serif;font-size:clamp(22px,4vw,38px);color:var(--acc);text-shadow:var(--gold-glow);text-align:center;line-height:1.15;}
+.game-sub{font-family:'Cinzel',serif;font-size:13px;letter-spacing:4px;color:var(--silver);opacity:.7;text-align:center;text-transform:uppercase;}
+.gold-rule{width:300px;height:1px;background:linear-gradient(90deg,transparent,var(--acc),transparent);}
+.setup-card{background:var(--bg2);border:1px solid var(--border);padding:24px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;}
+.setup-card h2{font-family:'Cinzel',serif;font-size:13px;color:var(--acc);letter-spacing:3px;text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.player-row{display:flex;gap:8px;align-items:center;}
+.player-row input[type="text"]{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:10px 14px;font-family:'Crimson Text',serif;font-size:17px;outline:none;transition:border-color .2s;}
+.player-row input:focus{border-color:var(--acc);}
+.color-dot{width:26px;height:26px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.2);}
+.remove-btn{background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.4);width:28px;height:28px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;border-radius:2px;transition:all .2s;}
+.remove-btn:hover{border-color:var(--red2);color:var(--red2);}
+.add-player-btn{background:none;border:1px dashed var(--border);color:var(--gold-dim);padding:9px;cursor:pointer;font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;transition:all .2s;}
+.add-player-btn:hover{border-color:var(--acc);color:var(--acc);}
+.btn-gold{font-family:'Cinzel',serif;font-weight:700;font-size:15px;letter-spacing:3px;text-transform:uppercase;padding:14px 38px;background:linear-gradient(135deg,#8a6a00,var(--acc),#8a6a00);background-size:200% 100%;border:none;color:var(--bg);cursor:pointer;transition:all .3s;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);}
+.btn-gold:hover{background-position:right;box-shadow:var(--gold-glow);transform:translateY(-2px);}
+.btn-ghost{font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;padding:10px 22px;background:none;border:1px solid var(--border);color:var(--silver);cursor:pointer;transition:all .2s;}
+.btn-ghost:hover{border-color:var(--acc);color:var(--acc);}
+
+/* ── THEME EDITOR ── */
+#editor-screen{padding:30px 20px;gap:18px;width:100%;max-width:700px;margin:0 auto;}
+.editor-header{display:flex;align-items:center;justify-content:space-between;width:100%;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.editor-header h1{font-family:'Cinzel',serif;font-size:18px;color:var(--acc);letter-spacing:2px;}
+.theme-section{background:var(--bg2);border:1px solid var(--border);padding:18px 22px;display:flex;flex-direction:column;gap:14px;width:100%;}
+.theme-section h3{font-family:'Cinzel',serif;font-size:12px;color:var(--acc);letter-spacing:3px;text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.theme-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.theme-row label{font-family:'Cinzel',serif;font-size:11px;color:var(--silver);letter-spacing:1px;min-width:120px;flex-shrink:0;}
+.theme-row input[type="text"]{flex:1;min-width:140px;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:8px 12px;font-family:'Crimson Text',serif;font-size:16px;outline:none;transition:border-color .2s;}
+.theme-row input[type="text"]:focus{border-color:var(--acc);}
+.theme-row input[type="color"]{width:46px;height:34px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;padding:2px;border-radius:2px;flex-shrink:0;}
+.preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;}
+.preset-btn{padding:8px 6px;border:2px solid transparent;cursor:pointer;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.preset-btn:hover{transform:translateY(-2px);}
+.preset-btn.selected{border-color:white!important;}
+.preset-swatch{width:100%;height:20px;border-radius:2px;}
+.theme-preview{border:1px solid var(--border);padding:14px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--bg3);}
+.prev-title{font-family:'Cinzel Decorative',serif;font-size:16px;text-align:center;transition:all .3s;}
+.prev-sub{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;opacity:.6;transition:all .3s;}
+.prev-board{display:grid;gap:2px;margin-top:6px;width:100%;}
+.prev-hdr{height:18px;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;transition:all .3s;}
+.prev-cell{height:18px;display:flex;align-items:center;justify-content:center;font-family:'Cinzel Decorative',serif;font-size:8px;transition:all .3s;}
+
+/* ── BOARD ── */
+#board-screen{padding:14px;gap:12px;width:100%;}
+.board-topbar{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:1100px;gap:10px;}
+.board-logo{font-family:'Cinzel Decorative',serif;font-size:clamp(13px,2vw,20px);color:var(--acc);text-shadow:var(--gold-glow);white-space:nowrap;}
+.scoreboard{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.score-chip{display:flex;flex-direction:column;align-items:center;background:var(--bg2);border:2px solid transparent;padding:6px 14px;min-width:88px;transition:all .3s;}
+.score-name{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;}
+.score-val{font-family:'Cinzel Decorative',serif;font-size:19px;color:var(--acc);}
+.score-val.neg{color:var(--red2);}
+.jeopardy-board{width:100%;max-width:1100px;display:grid;gap:5px;}
+.cat-header{background:var(--hdr);border:1px solid var(--border);padding:10px 6px;text-align:center;font-family:'Cinzel',serif;font-size:clamp(9px,1.4vw,13px);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--white);display:flex;align-items:center;justify-content:center;min-height:54px;line-height:1.3;}
+
+/* BOARD CELLS — used cells darken properly */
+.board-cell{
+  background:var(--cel);
+  border:1px solid rgba(var(--acc-rgb),.15);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .4s,border-color .2s,transform .15s,box-shadow .15s,opacity .4s;
+  min-height:68px;padding:8px;position:relative;overflow:hidden;
+}
+.board-cell::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(var(--acc-rgb),.08),transparent 70%);opacity:0;transition:opacity .15s;}
+.board-cell:hover:not(.used)::before{opacity:1;}
+.board-cell:hover:not(.used){border-color:var(--acc);transform:scale(1.03);z-index:2;box-shadow:var(--gold-glow);}
+.board-cell.used{
+  background:#050508;
+  border-color:rgba(255,255,255,.04);
+  cursor:default;pointer-events:none;opacity:0.35;
+}
+.cell-pts{font-family:'Cinzel Decorative',serif;font-size:clamp(16px,2.5vw,30px);color:var(--acc);text-shadow:var(--gold-glow);}
+
+/* ── MODALS ── */
+.modal-bg{position:fixed;inset:0;background:rgba(5,8,28,.9);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal-card{background:var(--bg2);border:2px solid var(--acc);box-shadow:var(--gold-glow);padding:32px 38px;max-width:540px;width:100%;display:flex;flex-direction:column;gap:16px;animation:min .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes min{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal-cat{font-family:'Cinzel',serif;font-size:12px;letter-spacing:4px;color:var(--acc);opacity:.7;text-align:center;text-transform:uppercase;}
+.modal-pts{font-family:'Cinzel Decorative',serif;font-size:44px;color:var(--acc);text-shadow:var(--gold-glow);text-align:center;line-height:1;}
+.modal-divider{height:1px;background:linear-gradient(90deg,transparent,var(--acc),transparent);}
+.buzzer-label{font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:var(--gold-dim);text-align:center;text-transform:uppercase;}
+.buzzer-grid{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.buzzer-btn{font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;padding:12px 20px;border:2px solid transparent;cursor:pointer;transition:all .2s;min-width:90px;text-align:center;font-weight:700;}
+.buzzer-btn:hover{transform:translateY(-2px);}
+.judge-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn-correct{background:var(--green);border:2px solid var(--green2);color:white;font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;padding:11px 26px;cursor:pointer;transition:all .2s;}
+.btn-correct:hover{background:var(--green2);transform:translateY(-1px);}
+.btn-wrong{background:var(--red);border:2px solid var(--red2);color:white;font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;padding:11px 26px;cursor:pointer;transition:all .2s;}
+.btn-wrong:hover{background:var(--red2);transform:translateY(-1px);}
+.btn-skip{background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.35);font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;padding:8px 18px;cursor:pointer;transition:all .2s;align-self:center;}
+.btn-skip:hover{border-color:var(--gold-dim);color:var(--gold-dim);}
+.who-answered{font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;text-align:center;}
+
+/* ── SCORE EDITOR ── */
+.score-edit-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:3px;color:var(--acc);text-align:center;text-transform:uppercase;}
+.score-table{display:flex;flex-direction:column;gap:8px;width:100%;}
+.score-edit-row{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);padding:10px 14px;}
+.score-edit-name{font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;flex:1;}
+.score-edit-input{width:90px;background:var(--bg);border:1px solid var(--border);color:var(--white);padding:7px 10px;font-family:'Cinzel Decorative',serif;font-size:17px;text-align:center;outline:none;transition:border-color .2s;}
+.score-edit-input:focus{border-color:var(--acc);}
+.score-nudge-wrap{display:flex;gap:4px;}
+.score-nudge{background:none;border:1px solid var(--border);color:var(--silver);width:28px;height:28px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;border-radius:2px;}
+.score-nudge:hover{border-color:var(--acc);color:var(--acc);}
+
+/* ── END ── */
+#end-screen{justify-content:center;padding:40px 20px;gap:22px;text-align:center;}
+.end-trophy{font-size:72px;animation:float 3s ease-in-out infinite;}
+.end-title{font-family:'Cinzel Decorative',serif;font-size:clamp(24px,5vw,44px);color:var(--acc);text-shadow:var(--gold-glow);}
+.end-results{display:flex;flex-direction:column;gap:8px;width:100%;max-width:380px;}
+.result-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--bg2);border:1px solid var(--border);}
+.result-row.winner{border-color:var(--acc);box-shadow:var(--gold-glow);}
+.result-rank{font-family:'Cinzel Decorative',serif;font-size:20px;color:var(--acc);width:32px;}
+.result-name{font-family:'Cinzel',serif;font-size:15px;letter-spacing:2px;flex:1;text-align:left;margin-left:10px;}
+.result-score{font-family:'Cinzel Decorative',serif;font-size:20px;color:var(--acc);}
+.result-score.neg{color:var(--red2);}
+
+/* Daily double */
+.dd-flash{position:fixed;inset:0;background:var(--bg);z-index:300;display:none;align-items:center;justify-content:center;}
+.dd-flash.show{display:flex;animation:ddf 2.2s forwards;}
+@keyframes ddf{0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0;pointer-events:none}}
+.dd-text{font-family:'Cinzel Decorative',serif;font-size:clamp(36px,8vw,72px);color:var(--acc);text-shadow:var(--gold-glow);animation:dds 2.2s forwards;}
+@keyframes dds{0%{transform:scale(.5);opacity:0}25%{transform:scale(1.1);opacity:1}75%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg2);border:1px solid var(--acc);padding:10px 24px;font-family:'Cinzel',serif;font-size:13px;color:var(--acc);letter-spacing:2px;z-index:1000;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.ok{border-color:var(--green2);color:var(--green2);}
+.toast.err{border-color:var(--red2);color:var(--red2);}
+
+@media(max-width:600px){.modal-card{padding:22px 16px;}.modal-pts{font-size:34px;}}
+</style>
+</head>
+<body>
+
+<!-- ══════ SETUP ══════ -->
+<div id="setup-screen" class="screen active">
+  <div class="logo-dnd" id="setup-icon">🐉</div>
+  <div class="game-title" id="setup-title">Realms of Knowledge</div>
+  <div class="game-sub" id="setup-sub">A D&amp;D Jeopardy Adventure</div>
+  <div class="gold-rule"></div>
+  <div class="setup-card">
+    <h2>⚔️ Adventuring Party</h2>
+    <div id="player-list"></div>
+    <button class="add-player-btn" onclick="addPlayer()">+ Add Adventurer</button>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+    <button class="btn-gold" onclick="startGame()">⚔️ Begin Quest</button>
+    <button class="btn-ghost" onclick="openEditor()">🎨 Edit Theme</button>
+  </div>
+</div>
+
+<!-- ══════ THEME EDITOR ══════ -->
+<div id="editor-screen" class="screen">
+  <div class="editor-header" style="width:100%;">
+    <h1>🎨 Theme Editor</h1>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-ghost" onclick="showScreen('setup-screen')">← Back</button>
+      <button class="btn-gold" onclick="saveTheme()">💾 Save</button>
+    </div>
+  </div>
+
+  <div class="theme-section">
+    <h3>⚡ Quick Presets</h3>
+    <div class="preset-grid" id="preset-grid"></div>
+  </div>
+
+  <div class="theme-section">
+    <h3>🏷️ Identity</h3>
+    <div class="theme-row"><label>Title</label><input type="text" id="th-title" oninput="themeData.title=this.value;livePreview()"></div>
+    <div class="theme-row"><label>Subtitle</label><input type="text" id="th-subtitle" oninput="themeData.subtitle=this.value;livePreview()"></div>
+    <div class="theme-row"><label>Icon / Emoji</label><input type="text" id="th-icon" maxlength="4" style="max-width:70px;" oninput="themeData.icon=this.value;livePreview()"></div>
+    <div class="theme-row"><label>Currency</label><input type="text" id="th-currency" placeholder="gp, pts…" oninput="themeData.currency=this.value"></div>
+  </div>
+
+  <div class="theme-section">
+    <h3>🖌️ Colours</h3>
+    <div class="theme-row"><label>Accent</label><input type="color" id="th-acc" oninput="themeData.acc=this.value;livePreview();applyTheme()"></div>
+    <div class="theme-row"><label>Background</label><input type="color" id="th-bg" oninput="themeData.bg=this.value;livePreview();applyTheme()"></div>
+    <div class="theme-row"><label>Panels</label><input type="color" id="th-bg2" oninput="themeData.bg2=this.value;livePreview();applyTheme()"></div>
+    <div class="theme-row"><label>Cat. Header</label><input type="color" id="th-hdr" oninput="themeData.hdr=this.value;livePreview();applyTheme()"></div>
+    <div class="theme-row"><label>Board Cell</label><input type="color" id="th-cel" oninput="themeData.cel=this.value;livePreview();applyTheme()"></div>
+  </div>
+
+  <div class="theme-section">
+    <h3>👁️ Preview</h3>
+    <div class="theme-preview" id="theme-preview">
+      <div id="prev-icon" style="font-size:28px;">🐉</div>
+      <div class="prev-title" id="prev-title">Realms of Knowledge</div>
+      <div class="prev-sub" id="prev-sub">A D&amp;D Jeopardy Adventure</div>
+      <div class="prev-board" id="prev-board" style="grid-template-columns:repeat(3,1fr);">
+        <div class="prev-hdr" id="pvh0">SPELLS</div><div class="prev-hdr" id="pvh1">MONSTERS</div><div class="prev-hdr" id="pvh2">LORE</div>
+        <div class="prev-cell" id="pvc0">200</div><div class="prev-cell" id="pvc1">200</div><div class="prev-cell" id="pvc2">200</div>
+        <div class="prev-cell" id="pvc3">400</div><div class="prev-cell" id="pvc4">400</div><div class="prev-cell" id="pvc5">400</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ BOARD ══════ -->
+<div id="board-screen" class="screen">
+  <div class="board-topbar">
+    <div class="board-logo" id="board-logo">🐉 Realms of Knowledge</div>
+    <div class="scoreboard" id="scoreboard"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-ghost" style="font-size:11px;padding:7px 14px;" onclick="openScoreEditor()">✏️ Edit Scores</button>
+      <button class="btn-ghost" style="font-size:11px;padding:7px 14px;" onclick="endGame()">End Game</button>
+    </div>
+  </div>
+  <div class="jeopardy-board" id="jeopardy-board"></div>
+</div>
+
+<!-- ══════ END ══════ -->
+<div id="end-screen" class="screen">
+  <div class="end-trophy">🏆</div>
+  <div class="end-title">Quest Complete!</div>
+  <div class="end-results" id="end-results"></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+    <button class="btn-gold" onclick="playAgain()">🎲 Play Again</button>
+    <button class="btn-ghost" onclick="backToMenu()">🏠 Menu</button>
+  </div>
+</div>
+
+<!-- ══════ AWARD MODAL ══════ -->
+<div class="modal-bg" id="award-modal">
+  <div class="modal-card">
+    <div class="modal-cat" id="modal-cat"></div>
+    <div class="modal-pts" id="modal-pts"></div>
+    <div class="modal-divider"></div>
+
+    <!-- Step 1: pick who answered -->
+    <div id="step-pick">
+      <div class="buzzer-label" style="margin-bottom:10px;">Who answered correctly?</div>
+      <div class="buzzer-grid" id="buzzer-grid"></div>
+      <div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn-wrong" onclick="nobodyAnswered()">✘ Nobody / All Wrong</button>
+        <button class="btn-skip" onclick="skipCell()">Skip (no change)</button>
+      </div>
+    </div>
+
+    <!-- Step 2: confirm correct or penalise wrong -->
+    <div id="step-confirm" style="display:none;flex-direction:column;gap:14px;">
+      <div class="who-answered" id="who-label"></div>
+      <div class="judge-row">
+        <button class="btn-correct" onclick="confirmCorrect()">✔ Correct! +<span id="cpts"></span></button>
+        <button class="btn-wrong"   onclick="confirmWrong()">✘ Wrong! −<span id="wpts"></span></button>
+      </div>
+      <button class="btn-skip" onclick="backToPick()">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SCORE EDITOR MODAL ══════ -->
+<div class="modal-bg" id="score-modal">
+  <div class="modal-card" style="max-width:420px;">
+    <div class="score-edit-title">✏️ Edit Scores</div>
+    <div class="modal-divider"></div>
+    <div class="score-table" id="score-table"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:4px;">
+      <button class="btn-gold" onclick="saveScores()">✔ Apply</button>
+      <button class="btn-ghost" onclick="g('score-modal').classList.remove('open')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Daily Double -->
+<div class="dd-flash" id="dd-flash"><div class="dd-text">✨ DAILY DOUBLE ✨</div></div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────
+const P_COLORS=['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#e91e63'];
+const POINTS=[200,400,600,800,1000];
+const CATS=["Races & Classes","Spells & Magic","Monsters & Foes","Forgotten Realms","Rules & Rolls","Lore & Artifacts"];
+
+// ─── THEME ───────────────────────────────────────────────
+const PRESETS=[
+  {name:'D&D Classic', e:'🐉', acc:'#e8c84a',bg:'#0b0e2a',bg2:'#111435',bg3:'#181c42',hdr:'#1a2060',cel:'#0e1540',title:'Realms of Knowledge',subtitle:'A D&D Jeopardy Adventure',currency:'gp'},
+  {name:'Shadowfell',  e:'💀', acc:'#a78bfa',bg:'#0d0014',bg2:'#1a0028',bg3:'#220035',hdr:'#2d0050',cel:'#160020',title:'Shadows of Knowledge',subtitle:'A Dark Realm Quiz',currency:'souls'},
+  {name:'Dragon Fire', e:'🔥', acc:'#ff6b35',bg:'#1a0800',bg2:'#2a0e00',bg3:'#361200',hdr:'#4a1800',cel:'#200900',title:'Trial by Fire',subtitle:"A Dragon's Challenge",currency:'scales'},
+  {name:'Arcane',      e:'🔮', acc:'#60efff',bg:'#010d1a',bg2:'#021525',bg3:'#031d30',hdr:'#042a45',cel:'#010f1e',title:'Arcane Secrets',subtitle:'Spells & Sorcery Quiz',currency:'mana'},
+  {name:'Forest',      e:'🌿', acc:'#6bcb77',bg:'#050f05',bg2:'#0a1a0a',bg3:'#0e220e',hdr:'#143314',cel:'#080f08',title:'Verdant Trials',subtitle:"A Druid's Challenge",currency:'leaves'},
+  {name:'Underdark',   e:'🍄', acc:'#c084fc',bg:'#080010',bg2:'#100018',bg3:'#180022',hdr:'#200030',cel:'#0c0014',title:'Underdark Trials',subtitle:'Drow & Depths',currency:'gems'},
+  {name:'Celestial',   e:'⭐', acc:'#fde68a',bg:'#04071a',bg2:'#080d28',bg3:'#0c1232',hdr:'#101945',cel:'#060a1e',title:'Celestial Wisdom',subtitle:'Stars & Divinity',currency:'stardust'},
+  {name:'Pirate',      e:'⚓', acc:'#ffd166',bg:'#0a0d1a',bg2:'#0f1428',bg3:'#141a32',hdr:'#1a2347',cel:'#0c1020',title:'Seas of Fortune',subtitle:"A Pirate's Quiz",currency:'doubloons'},
+];
+
+let themeData={...PRESETS[0],icon:PRESETS[0].e};
+
+function hexRgb(h){return`${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)}`;}
+
+function applyTheme(){
+  const r=document.documentElement.style;
+  r.setProperty('--acc',themeData.acc);
+  r.setProperty('--acc-rgb',hexRgb(themeData.acc));
+  r.setProperty('--bg', themeData.bg);
+  r.setProperty('--bg2',themeData.bg2);
+  r.setProperty('--bg3',themeData.bg3||themeData.bg2);
+  r.setProperty('--hdr',themeData.hdr);
+  r.setProperty('--cel',themeData.cel);
+  r.setProperty('--gold',themeData.acc);
+  r.setProperty('--gold2',themeData.acc);
+  r.setProperty('--gold-dim',themeData.acc+'99');
+  r.setProperty('--gold-glow',`0 0 18px rgba(${hexRgb(themeData.acc)},.6), 0 0 40px rgba(${hexRgb(themeData.acc)},.2)`);
+  r.setProperty('--border',`rgba(${hexRgb(themeData.acc)},.25)`);
+  g('setup-icon').textContent =themeData.icon||themeData.e||'🐉';
+  g('setup-title').textContent=themeData.title;
+  g('setup-sub').textContent  =themeData.subtitle;
+  g('board-logo').textContent =`${themeData.icon||themeData.e} ${themeData.title}`;
+}
+
+function livePreview(){
+  const a=themeData.acc,rgb=hexRgb(a);
+  g('theme-preview').style.background=themeData.bg;
+  g('prev-icon').textContent=themeData.icon||themeData.e||'';
+  const pt=g('prev-title');pt.style.color=a;pt.style.textShadow=`0 0 12px rgba(${rgb},.6)`;pt.textContent=themeData.title;
+  g('prev-sub').textContent=themeData.subtitle;
+  ['pvh0','pvh1','pvh2'].forEach(id=>{const e=g(id);if(e){e.style.background=themeData.hdr;e.style.borderBottom=`1px solid rgba(${rgb},.3)`;}});
+  ['pvc0','pvc1','pvc2','pvc3','pvc4','pvc5'].forEach(id=>{const e=g(id);if(e){e.style.background=themeData.cel;e.style.color=a;e.style.border=`1px solid rgba(${rgb},.2)`;}});
+}
+
+function syncInputs(){
+  sv('th-title',themeData.title);sv('th-subtitle',themeData.subtitle);
+  sv('th-icon',themeData.icon||themeData.e);sv('th-currency',themeData.currency);
+  sv('th-acc',themeData.acc);sv('th-bg',themeData.bg);sv('th-bg2',themeData.bg2);
+  sv('th-hdr',themeData.hdr);sv('th-cel',themeData.cel);
+}
+
+function renderPresets(){
+  const gr=g('preset-grid');if(!gr)return;gr.innerHTML='';
+  PRESETS.forEach((p,i)=>{
+    const b=document.createElement('button');
+    b.className='preset-btn';b.id=`pb${i}`;
+    b.style.cssText=`background:${p.bg};border-color:${p.acc}55;color:${p.acc}`;
+    b.innerHTML=`<div class="preset-swatch" style="background:linear-gradient(135deg,${p.hdr} 0%,${p.cel} 50%,${p.bg} 100%);border:1px solid ${p.acc}44;"></div><span>${p.e} ${p.name}</span>`;
+    b.onclick=()=>{
+      themeData={...p,icon:p.e};syncInputs();applyTheme();livePreview();
+      document.querySelectorAll('.preset-btn').forEach((x,j)=>x.classList.toggle('selected',j===i));
+      showToast(`Theme: ${p.name}`);
+    };
+    gr.appendChild(b);
+  });
+}
+
+function openEditor(){renderPresets();syncInputs();livePreview();showScreen('editor-screen');}
+function saveTheme(){applyTheme();showScreen('setup-screen');renderPlayerList();showToast('Theme saved!');}
+
+// ─── STATE ────────────────────────────────────────────────
+let players=[];
+let usedCells=new Set();
+let currentCell=null;   // {ci,qi}
+let pendingIdx=null;    // player index in step-confirm
+
+// ─── PLAYERS ─────────────────────────────────────────────
+function initPlayers(){
+  players=[
+    {name:'Player 1',color:P_COLORS[0],score:0},
+    {name:'Player 2',color:P_COLORS[1],score:0},
+  ];
+}
+function renderPlayerList(){
+  const list=g('player-list');list.innerHTML='';
+  players.forEach((p,i)=>{
+    const row=document.createElement('div');row.className='player-row';
+    row.innerHTML=`<div class="color-dot" style="background:${p.color}"></div><input type="text" value="${p.name}" placeholder="Name" oninput="players[${i}].name=this.value"><button class="remove-btn" onclick="removePlayer(${i})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+function addPlayer(){if(players.length>=8){showToast('Max 8!');return;}players.push({name:`Player ${players.length+1}`,color:P_COLORS[players.length%P_COLORS.length],score:0});renderPlayerList();}
+function removePlayer(i){if(players.length<=1){showToast('Need at least 1!');return;}players.splice(i,1);renderPlayerList();}
+
+// ─── GAME ─────────────────────────────────────────────────
+function startGame(){
+  if(!players.length){showToast('Add a player first!');return;}
+  players.forEach(p=>p.score=0);
+  usedCells=new Set();
+  applyTheme();buildBoard();renderScoreboard();showScreen('board-screen');
+}
+
+function buildBoard(){
+  const board=g('jeopardy-board');
+  board.style.gridTemplateColumns=`repeat(${CATS.length},1fr)`;
+  board.innerHTML='';
+  CATS.forEach((name,ci)=>{
+    const h=document.createElement('div');h.className='cat-header';
+    h.style.borderTop=`3px solid ${P_COLORS[ci%P_COLORS.length]}`;
+    h.textContent=name.toUpperCase();board.appendChild(h);
+  });
+  POINTS.forEach((pts,qi)=>{
+    CATS.forEach((_,ci)=>{
+      const key=`${ci}-${qi}`;
+      const cell=document.createElement('div');
+      cell.className='board-cell'+(usedCells.has(key)?' used':'');
+      cell.id=`cell-${ci}-${qi}`;
+      cell.innerHTML=`<span class="cell-pts">${pts}</span>`;
+      cell.onclick=()=>openAward(ci,qi);
+      board.appendChild(cell);
+    });
+  });
+}
+
+function renderScoreboard(){
+  const sb=g('scoreboard');sb.innerHTML='';
+  players.forEach((p,i)=>{
+    const chip=document.createElement('div');chip.className='score-chip';chip.id=`chip${i}`;
+    chip.innerHTML=`<div class="score-name" style="color:${p.color}">${p.name}</div><div class="score-val${p.score<0?' neg':''}" id="sv${i}">${p.score.toLocaleString()}</div>`;
+    sb.appendChild(chip);
+  });
+}
+function refreshScores(){
+  players.forEach((p,i)=>{
+    const sv=g(`sv${i}`);if(!sv)return;
+    sv.textContent=p.score.toLocaleString();
+    sv.className='score-val'+(p.score<0?' neg':'');
+  });
+}
+
+// ─── AWARD MODAL ──────────────────────────────────────────
+function openAward(ci,qi){
+  const key=`${ci}-${qi}`;if(usedCells.has(key))return;
+  currentCell={ci,qi};pendingIdx=null;
+  g('modal-cat').textContent=CATS[ci].toUpperCase();
+  g('modal-pts').textContent=POINTS[qi];
+  const gr=g('buzzer-grid');gr.innerHTML='';
+  players.forEach((p,i)=>{
+    const b=document.createElement('button');b.className='buzzer-btn';
+    b.style.cssText=`background:${p.color}22;border-color:${p.color};color:${p.color}`;
+    b.textContent=p.name;b.onclick=()=>pickPlayer(i);gr.appendChild(b);
+  });
+  g('step-pick').style.display='';g('step-confirm').style.display='none';
+  g('award-modal').classList.add('open');
+}
+
+function pickPlayer(i){
+  pendingIdx=i;
+  const pts=POINTS[currentCell.qi];
+  const lbl=g('who-label');lbl.textContent=`${players[i].name} answered`;lbl.style.color=players[i].color;
+  g('cpts').textContent=pts;g('wpts').textContent=pts;
+  g('step-pick').style.display='none';g('step-confirm').style.display='flex';
+}
+function backToPick(){g('step-pick').style.display='';g('step-confirm').style.display='none';pendingIdx=null;}
+
+function confirmCorrect(){
+  if(pendingIdx===null)return;
+  const pts=POINTS[currentCell.qi];
+  players[pendingIdx].score+=pts;
+  refreshScores();showToast(`+${pts} for ${players[pendingIdx].name}!`,'ok');
+  markUsed();closeAward();
+}
+function confirmWrong(){
+  if(pendingIdx===null)return;
+  const pts=POINTS[currentCell.qi];
+  players[pendingIdx].score-=pts;
+  refreshScores();showToast(`−${pts} for ${players[pendingIdx].name}`,'err');
+  markUsed();closeAward();
+}
+function nobodyAnswered(){markUsed();closeAward();showToast('No points awarded.');}
+function skipCell(){closeAward();}  // skip without marking used
+
+function markUsed(){
+  const{ci,qi}=currentCell;const key=`${ci}-${qi}`;
+  usedCells.add(key);
+  const cell=g(`cell-${ci}-${qi}`);if(cell)cell.classList.add('used');
+  if(usedCells.size>=CATS.length*POINTS.length)setTimeout(endGame,400);
+}
+function closeAward(){g('award-modal').classList.remove('open');}
+
+// ─── SCORE EDITOR ─────────────────────────────────────────
+function openScoreEditor(){
+  const t=g('score-table');t.innerHTML='';
+  players.forEach((p,i)=>{
+    const row=document.createElement('div');row.className='score-edit-row';
+    row.innerHTML=`
+      <div class="score-edit-name" style="color:${p.color}">${p.name}</div>
+      <div class="score-nudge-wrap">
+        <button class="score-nudge" onclick="nudge(${i},-200)">−200</button>
+        <button class="score-nudge" onclick="nudge(${i},200)">+200</button>
+      </div>
+      <input class="score-edit-input" id="sei${i}" type="number" value="${p.score}">`;
+    t.appendChild(row);
+  });
+  g('score-modal').classList.add('open');
+}
+function nudge(i,d){const inp=g(`sei${i}`);if(inp)inp.value=(parseInt(inp.value)||0)+d;}
+function saveScores(){
+  players.forEach((p,i)=>{const inp=g(`sei${i}`);if(inp)p.score=parseInt(inp.value)||0;});
+  refreshScores();g('score-modal').classList.remove('open');showToast('Scores updated!','ok');
+}
+
+// ─── END ──────────────────────────────────────────────────
+function endGame(){
+  const sorted=[...players].sort((a,b)=>b.score-a.score);
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣'];
+  const res=g('end-results');res.innerHTML='';
+  sorted.forEach((p,i)=>{
+    const row=document.createElement('div');row.className='result-row'+(i===0?' winner':'');
+    row.innerHTML=`<div class="result-rank">${medals[i]}</div><div class="result-name" style="color:${p.color}">${p.name}</div><div class="result-score${p.score<0?' neg':''}">${p.score.toLocaleString()} ${themeData.currency||'gp'}</div>`;
+    res.appendChild(row);
+  });
+  showScreen('end-screen');
+}
+function playAgain(){players.forEach(p=>p.score=0);usedCells=new Set();buildBoard();renderScoreboard();showScreen('board-screen');}
+function backToMenu(){showScreen('setup-screen');renderPlayerList();}
+
+// ─── UTILS ────────────────────────────────────────────────
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));g(id).classList.add('active');}
+function g(id){return document.getElementById(id);}
+function sv(id,v){const e=g(id);if(e)e.value=v;}
+let toastT;
+function showToast(msg,cls=''){const t=g('toast');t.textContent=msg;t.className='toast '+cls+' show';clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
+
+// ─── INIT ─────────────────────────────────────────────────
+initPlayers();renderPlayerList();renderPresets();applyTheme();livePreview();syncInputs();
+</script>
+</body>
+</html>
